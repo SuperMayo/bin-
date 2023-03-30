@@ -1,0 +1,59 @@
+#!/bin/bash
+# A simple rclone script to backup my projects to both a freebox-connected hard drive and Google Drive.
+# The script will only execute if the local freebox address is online (that is, I'm at home)
+
+# Set up variables
+HOST=mafreebox.freebox.fr
+SOURCE="$HOME/projects"
+REMOTE_LOCAL="freebox_smb:/Data/macos_backup"
+REMOTE_DRIVE="gdrive:/macos_backup"
+read -s -p "Rclone config password: " PASS
+
+# Sync local project directory to freebox-connected hard drive
+if ping -c 1 $HOST &> /dev/null
+then
+    echo "Freebox is online"
+    echo "Syncing to local hard drive"
+    rclone sync \
+    --password-command "echo $PASS" \
+    --exclude=*.{csv,parquet,db,zip,DS_Store,Icon,7z,gz,fst,zip} \
+    --exclude "node_modules/**" \
+    --exclude ".history/**" \
+    --exclude "renv/library/**" \
+    --exclude "renv/sandbox/**" \
+    --exclude ".Rproj.user/**" \
+    --exclude ".cache/**" \
+    --exclude ".dvc/cache/**" \
+    --exclude "__pycache__/**" \
+    --exclude ".env/**" \
+    --exclude "venv/**" \
+    --max-size 50M \
+    --skip-links \
+    --size-only \
+    -v -P \
+    $SOURCE $REMOTE_LOCAL
+    
+    echo "Syncing to Google Drive"
+    rclone sync \
+    --password-command "echo $PASS" \
+    --exclude=*.{csv,parquet,db,zip,DS_Store,Icon,7z,gz,fst,zip} \
+    --exclude "node_modules/**" \
+    --exclude ".history/**" \
+    --exclude "renv/library/**" \
+    --exclude "renv/sandbox/**" \
+    --exclude ".Rproj.user/**" \
+    --exclude ".cache/**" \
+    --exclude ".dvc/cache/**" \
+    --exclude "__pycache__/**" \
+    --exclude ".env/**" \
+    --exclude "venv/**" \
+    --max-size 50M \
+    --skip-links \
+    -v -P \
+    --drive-chunk-size 128M \
+    --transfers 8 \
+    --checkers 8 \
+    $SOURCE $REMOTE_DRIVE
+else
+    echo "Freebox is offline"
+fi
