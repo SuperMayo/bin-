@@ -5,7 +5,7 @@
 # Set up variables
 HOST=mafreebox.freebox.fr
 SOURCE="$HOME/projects"
-REMOTE_LOCAL="freebox_smb:/Data/macos_backup"
+REMOTE_LOCAL="freebox_smb:/WD/backup_sync/macos_projects"
 REMOTE_DRIVE="gdrive:/macos_backup"
 read -s -p "Rclone config password: " PASS
 
@@ -16,7 +16,6 @@ then
     echo "Syncing to local hard drive"
     rclone sync \
     --password-command "echo $PASS" \
-    --exclude=*.{csv,parquet,db,zip,DS_Store,Icon,7z,gz,fst,zip} \
     --exclude "node_modules/**" \
     --exclude ".history/**" \
     --exclude "renv/library/**" \
@@ -27,7 +26,7 @@ then
     --exclude "__pycache__/**" \
     --exclude ".env/**" \
     --exclude "venv/**" \
-    --max-size 50M \
+    --max-size 200M \
     --skip-links \
     --size-only \
     -v -P \
